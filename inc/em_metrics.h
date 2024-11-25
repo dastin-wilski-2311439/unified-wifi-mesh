@@ -30,6 +30,18 @@ class em_metrics_t {
     virtual int send_frame(unsigned char *buff, unsigned int len, bool multicast = false) = 0;
     virtual em_profile_type_t get_profile_type() = 0;
 
+    int send_all_ap_metrics_msg();
+    int send_ap_metrics_msg();
+
+    int handle_ap_metrics_resp();
+    int handle_ap_metrics_tlv();
+    int handle_ap_ext_metrics_tlv();
+    int handle_radio_metrics_tlv();
+    int handle_assoc_sta_traffic_metrics_tlv();
+    int handle_assoc_wifi6_sta_sts_rprt_tlv();
+    int handle_affil_ap_metrics_tlv();
+    int handle_affil_sta_metrics_tlv();
+
     int send_all_associated_sta_link_mterics_msg();
     int send_associated_sta_link_metrics_msg(mac_address_t sta_mac);
 
