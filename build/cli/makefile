@@ -78,7 +78,7 @@ $(PROGRAM): $(MAIN_OBJECT)
 	$(CXX) -o $@ $(MAIN_OBJECT) $(LDFLAGS)
 
 $(EM_CLI_LIBRARY): $(EMCLIOBJECTS)
-	$(CXX) -shared -o $@ $(EMCLIOBJECTS)
+	$(CXX) -fPIC -shared -o $@ $(EMCLIOBJECTS)
 
 $(GENERIC_OBJECTS): %.o: %.c
 	$(CC) $(CXXFLAGS) -o $@ -c $<
