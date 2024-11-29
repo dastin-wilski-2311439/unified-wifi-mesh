@@ -133,6 +133,13 @@ bool em_orch_ctrl_t::is_em_ready_for_orch_fini(em_cmd_t *pcmd, em_t *em)
                 return true;
             }
             break;
+
+        case em_cmd_type_ap_metrics:
+            if (em->get_state() == em_state_ctrl_configured) {
+                return true;
+            }
+            break;
+
         case em_cmd_type_sta_steer:
             if (em->get_client_steering_req_tx_count() >= EM_MAX_CLIENT_STEER_REQ_TX_THRESH
                 || (em->get_state() == em_state_ctrl_steer_btm_req_ack_rcvd)) {
@@ -204,6 +211,7 @@ bool em_orch_ctrl_t::is_em_ready_for_orch_exec(em_cmd_t *pcmd, em_t *em)
         case em_cmd_type_sta_steer:
         case em_cmd_type_sta_disassoc:
         case em_cmd_type_sta_link_metrics:
+        case em_cmd_type_ap_metrics:
         case em_cmd_type_set_channel:
         case em_cmd_type_scan_channel:
         case em_cmd_type_set_policy:
@@ -401,6 +409,14 @@ unsigned int em_orch_ctrl_t::build_candidates(em_cmd_t *pcmd)
                     count++;
                 }
                 break;
+
+            case em_cmd_type_ap_metrics:
+                if ((em->is_al_interface_em() == false) && (em->get_state() == em_state_ctrl_configured)) 
+                {
+                    queue_push(pcmd->m_em_candidates, em);
+                    count++;
+                }
+                break;    
             
             case em_cmd_type_set_channel:
             case em_cmd_type_scan_channel:

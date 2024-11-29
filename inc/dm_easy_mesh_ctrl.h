@@ -63,6 +63,7 @@ public:
     void	set_initialized() { m_initialized = true; }
 
     //int analyze_network_ssid_list(em_bus_event_t *evt, em_cmd_t *cmd[]);
+    int analyze_ap_metrics(em_cmd_t *pcmd[]);
     int analyze_sta_link_metrics(em_cmd_t *pcmd[]);
     int analyze_set_ssid(em_bus_event_t *evt, em_cmd_t *cmd[]);
     int analyze_set_radio(em_bus_event_t *evt, em_cmd_t *cmd[]);

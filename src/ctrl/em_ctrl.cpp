@@ -321,7 +321,12 @@ void em_ctrl_t::handle_radio_metrics_req()
 
 void em_ctrl_t::handle_ap_metrics_req()
 {
+    em_cmd_t *pcmd[EM_MAX_CMD] = {NULL};
+    unsigned int num;
 
+    if ((num = m_data_model.analyze_ap_metrics(pcmd)) > 0) {
+        m_orch->submit_commands(pcmd, num);
+    }
 }
 
 void em_ctrl_t::handle_client_metrics_req()
@@ -371,7 +376,7 @@ void em_ctrl_t::handle_5s_timeout()
     //printf("%s:%d: %s%ld\n", __func__, __LINE__, buffer, tv.tv_usec);
     //handle_topology_req();
     //handle_radio_metrics_req();
-    //handle_ap_metrics_req();
+    handle_ap_metrics_req();
     handle_client_metrics_req();
 }
 
@@ -642,6 +647,7 @@ em_t *em_ctrl_t::find_em_for_msg_type(unsigned char *data, unsigned int len, em_
         case em_msg_type_channel_pref_query:
         case em_msg_type_channel_sel_req:
         case em_msg_type_client_cap_query:
+        case em_msg_type_ap_metrics_query:
         case em_msg_type_assoc_sta_link_metrics_query:
         case em_msg_type_client_steering_req:
         case em_msg_type_client_assoc_ctrl_req:
@@ -665,6 +671,17 @@ em_t *em_ctrl_t::find_em_for_msg_type(unsigned char *data, unsigned int len, em_
             em = (em_t *)hash_map_get_first(m_em_map);
             while(em != NULL) {
                 if ((em->is_al_interface_em() == false) && (em->has_at_least_one_associated_sta() == true)) {
+                    break;
+                }
+                em = (em_t *)hash_map_get_next(m_em_map, em);
+            }
+
+            break;
+                
+        case em_msg_type_ap_metrics_rsp:
+            em = (em_t *)hash_map_get_first(m_em_map);
+            while(em != NULL) {
+                if ((em->is_al_interface_em() == false)) {
                     break;
                 }
                 em = (em_t *)hash_map_get_next(m_em_map, em);

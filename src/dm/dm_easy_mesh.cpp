@@ -1981,6 +1981,39 @@ dm_bss_t *dm_easy_mesh_t::get_bss_index(mac_address_t radio_mac, mac_address_t b
     return &m_bss[i];
 }
 
+dm_bss_t *dm_easy_mesh_t::find_bss_by_bssid(mac_address_t ap_mac)
+{
+    unsigned int i;
+    dm_bss_t *bss;
+
+    for(i = 0; i < m_num_bss; i++)
+    {
+        bss = &m_bss[i];
+        if (memcmp(bss->m_bss_info.bssid.mac, ap_mac, sizeof(mac_address_t)) == 0)
+        {
+            return bss;
+        }
+
+    }
+    return NULL;
+}
+
+/*dm_ap_mld_t *dm_easy_mesh_t::find_ap_mld_by_mac(mac_address_t  mac_addr)
+{
+    unsigned int i;
+    dm_ap_mld_t *ap_mld;
+
+    for(i = 0; i < m_num_ap_mld; i++)
+    {
+        ap_mld = &m_ap_mld[i];
+        if (memcmp(ap_mld->m_ap_mld_info.mac_addr, mac_addr, sizeof(mac_address_t)) == 0)
+        {
+            return ap_mld;
+        }
+    }
+    return NULL;
+}*/
+
 em_sta_info_t *dm_easy_mesh_t::get_first_sta_info(em_target_sta_map_t target)
 {
     hash_map_t *map;

@@ -401,6 +401,11 @@ void em_cmd_t::init()
             m_svc = em_service_type_ctrl;
             break;
 
+        case em_cmd_type_ap_metrics:
+            strncpy(m_name, "ap_metrics", strlen("ap_metrics") + 1);
+            m_svc = em_service_type_ctrl;
+            break;
+
         case em_cmd_type_sta_steer:
             strncpy(m_name, "sta_steer", strlen("sta_steer") + 1);
             m_svc = em_service_type_ctrl;
@@ -569,6 +574,7 @@ const char *em_cmd_t::get_cmd_type_str(em_cmd_type_t type)
         CMD_TYPE_2S(em_cmd_type_sta_assoc)
         CMD_TYPE_2S(em_cmd_type_channel_pref_query)
         CMD_TYPE_2S(em_cmd_type_sta_link_metrics)
+        CMD_TYPE_2S(em_cmd_type_ap_metrics)
         CMD_TYPE_2S(em_cmd_type_sta_steer)
         CMD_TYPE_2S(em_cmd_type_btm_report)
         CMD_TYPE_2S(em_cmd_type_sta_disassoc)
