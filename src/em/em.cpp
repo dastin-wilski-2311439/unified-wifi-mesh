@@ -154,6 +154,10 @@ void em_t::orch_execute(em_cmd_t *pcmd)
 		case em_cmd_type_set_policy:
             set_state(em_state_ctrl_set_policy_pending);
             break;
+
+        case em_cmd_type_ap_metrics:
+            m_sm.set_state(em_state_ctrl_ap_metrics_pending);
+            break;
     }
 }
 
@@ -209,6 +213,11 @@ void em_t::proto_process(unsigned char *data, unsigned int len)
         case em_msg_type_channel_sel_rsp:
         case em_msg_type_op_channel_rprt:
             em_channel_t::process_msg(data, len);
+            break;
+
+        case em_msg_type_ap_metrics_query:
+        case em_msg_type_ap_metrics_rsp:
+            em_metrics_t::process_msg(data, len);
             break;
 
         case em_msg_type_assoc_sta_link_metrics_query:
@@ -331,6 +340,10 @@ void em_t::handle_ctrl_state()
             break;
 
         case em_cmd_type_sta_link_metrics:
+            em_metrics_t::process_ctrl_state();
+			break;
+
+        case em_cmd_type_ap_metrics:
             em_metrics_t::process_ctrl_state();
 			break;
 
@@ -919,6 +932,7 @@ const char *em_t::state_2_str(em_state_t state)
 		EM_STATE_2S(em_state_agent_steer_btm_res_pending)
 		EM_STATE_2S(em_state_ctrl_sta_disassoc_pending)
 		EM_STATE_2S(em_state_ctrl_set_policy_pending)
+        EM_STATE_2S(em_state_ctrl_ap_metrics_pending)
     }
 
     return "em_state_unknown";

@@ -75,6 +75,7 @@ public:
     void handle_channel_sel_req(em_bus_event_t *evt);
     void handle_sta_link_metrics(em_bus_event_t *evt);
     void handle_steer_sta(em_bus_event_t *evt);
+    void handle_ap_metrics(em_bus_event_t *evt);
 
     em_cmd_t& get_command(char *in);
     

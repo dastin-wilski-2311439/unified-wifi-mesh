@@ -53,10 +53,28 @@
 #include "em_cmd_cfg_renew.h"
 #include "em_cmd_sta_assoc.h"
 #include "em_cmd_sta_link_metrics.h"
+#include "em_cmd_ap_metrics.h"
 #include "em_cmd_sta_steer.h"
 #include "em_cmd_sta_disassoc.h"
 
 extern char *global_netid;
+
+int dm_easy_mesh_ctrl_t::analyze_ap_metrics(em_cmd_t *pcmd[])
+{
+    int num = 0;
+    em_cmd_t *tmp;
+
+    pcmd[num] = new em_cmd_ap_metrics_t();
+    tmp = pcmd[num];
+    num++;
+
+    while ((pcmd[num] = tmp->clone_for_next()) != NULL) {
+        tmp = pcmd[num];
+        num++;
+    }
+
+    return num;
+}
 
 int dm_easy_mesh_ctrl_t::analyze_sta_link_metrics(em_cmd_t *pcmd[])
 {
@@ -1623,6 +1641,11 @@ int dm_easy_mesh_ctrl_t::update_tables(dm_easy_mesh_t *dm)
             delete tmp;
         }
 
+    }
+
+    if (dm->get_db_cfg_type() & db_cfg_type_ap_metrics_update) {
+
+        dm->set_db_cfg_type(dm->get_db_cfg_type() & ~db_cfg_type_ap_metrics_update);    
     }
 
     if (dm->get_db_cfg_type() & db_cfg_type_sta_metrics_update) {

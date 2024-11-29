@@ -56,6 +56,18 @@ void em_agent_t::handle_sta_list(em_bus_event_t *evt)
     }
 }
 
+void em_agent_t::handle_ap_metrics(em_bus_event_t *evt)
+{
+    em_cmd_t *pcmd[EM_MAX_CMD] = {NULL};
+    unsigned int num;
+
+    if (m_orch->is_cmd_type_in_progress(evt->type) == true) {
+        printf("analyze_ap_metrics in progress\n");
+    } else if ((num = m_data_model.analyze_ap_metrics(evt, pcmd)) == 0) {
+        printf("analyze_ap_metrics failed\n");
+    }
+}
+
 void em_agent_t::handle_sta_link_metrics(em_bus_event_t *evt)
 {
     em_cmd_t *pcmd[EM_MAX_CMD] = {NULL};
@@ -359,6 +371,10 @@ void em_agent_t::handle_bus_event(em_bus_event_t *evt)
 
         case em_bus_event_type_sta_link_metrics:
             handle_sta_link_metrics(evt);
+            break;
+
+        case em_bus_event_type_ap_metrics:
+            handle_ap_metrics(evt);
             break;
 
         case em_bus_event_type_bss_tm_req:
@@ -732,12 +748,27 @@ em_t *em_agent_t::find_em_for_msg_type(unsigned char *data, unsigned int len, em
                 em = (em_t *)hash_map_get_next(m_em_map, em);
             }
             break;
+        case em_msg_type_ap_metrics_query:
+            printf("\n%s:%d: Rcvd AP Metrics Query\n", __func__, __LINE__);
+
+            em = (em_t *)hash_map_get_first(m_em_map);
+            while (em != NULL) {
+                if ((em->is_al_interface_em() == false)) {
+                    break;
+                }
+                em = (em_t *)hash_map_get_next(m_em_map, em);
+            }
+            break;
 
         case em_msg_type_client_steering_btm_rprt:
             printf("%s:%d: Sending Client BTM REPORT\n", __func__, __LINE__);
             break;
 
         case em_msg_type_1905_ack:
+            break;
+            
+        case em_msg_type_ap_metrics_rsp:
+            printf("%s:%d: Sending AP Metrics response\n", __func__, __LINE__);
             break;
 
         default:

@@ -272,11 +272,11 @@ unsigned int em_msg_t::validate(char *errors[])
             errors[m_num_errors - 1] = m_errors[m_num_errors - 1];
             validation = false;
             if (m_tlv_member[i].m_present == false) { 
-                //printf("%s:%d; TLV not present\n", __func__, __LINE__);
+                printf("%s:%d; TLV not present\n", __func__, __LINE__);
             }   
 
             if (((sizeof(em_tlv_t) + htons(tlv->len)) < (m_tlv_member[i].m_tlv_length))) {
-                //printf("%s:%d; TLV type: 0x%04x Length: %d, length validation error\n", __func__, __LINE__, tlv->type, htons(tlv->len));
+                printf("%s:%d; TLV type: 0x%04x Length: %d, length validation error\n", __func__, __LINE__, tlv->type, htons(tlv->len));
             }
         }
 
@@ -284,8 +284,8 @@ unsigned int em_msg_t::validate(char *errors[])
             snprintf(m_errors[m_num_errors], sizeof(m_errors[m_num_errors]), "%s", m_tlv_member[i].m_spec);
             m_num_errors++;
             errors[m_num_errors - 1] = m_errors[m_num_errors - 1];
-            //printf("%s:%d; TLV type: 0x%04x Length: %d, presence validation error, profile: %d\n", __func__, __LINE__, 
-            //tlv->type, htons(tlv->len), m_profile);
+            printf("%s:%d; TLV type: 0x%04x Length: %d, presence validation error, profile: %d\n", __func__, __LINE__, 
+            tlv->type, htons(tlv->len), m_profile);
             validation = false;
         }
     }
@@ -537,6 +537,8 @@ void em_msg_t::ap_metrics_rsp()
     m_tlv_member[m_num_tlv++] = em_tlv_member_t(em_tlv_type_assoc_sta_link_metric, optional, "17.2.24 of Wi-Fi Easy Mesh 5.0", 29);
     m_tlv_member[m_num_tlv++] = em_tlv_member_t(em_tlv_type_assoc_sta_ext_link_metric, (m_profile > em_profile_type_1) ? optional:bad, "17.2.62 of Wi-Fi Easy Mesh 5.0", 32);
     m_tlv_member[m_num_tlv++] = em_tlv_member_t(em_tlv_type_assoc_wifi6_sta_rprt, (m_profile > em_profile_type_2) ? optional:bad, "17.2.73 of Wi-Fi Easy Mesh 5.0", 12);
+    //m_tlv_member[m_num_tlv++] = em_tlv_member_t(em_tlv_type_affil_ap_metric, (m_profile > em_profile_type_1) ? optional:bad, "17.2.101 of Wi-Fi Easy Mesh 6.0", 45);
+    //m_tlv_member[m_num_tlv++] = em_tlv_member_t(em_tlv_type_affil_sta_metric, (m_profile > em_profile_type_1) ? optional:bad, "17.2.100 of Wi-Fi Easy Mesh 6.0", 29); Wifi 6.0
 }
 
 void em_msg_t::sta_link_metrics_query()
