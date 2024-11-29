@@ -163,6 +163,7 @@ public:
     dm_bss_t *get_bss(unsigned int index) { return &m_bss[index]; }
     dm_bss_t *get_bss_index(mac_address_t radio, mac_address_t bss, bool *new_bss);
     dm_bss_t& get_bss_by_ref(unsigned int index) { return m_bss[index]; }
+    dm_bss_t *find_bss_by_bssid(mac_address_t ap_mac);
 
     unsigned int get_num_ap_mld() { return m_num_ap_mld; }
     static unsigned int get_num_ap_mld(void *dm) { return ((dm_easy_mesh_t *)dm)->get_num_ap_mld(); }
@@ -170,6 +171,7 @@ public:
     static void set_num_ap_mld(void *dm, unsigned int num) { ((dm_easy_mesh_t *)dm)->set_num_ap_mld(num); }
     dm_ap_mld_t *get_ap_mld(unsigned int index) { return &m_ap_mld[index]; }
     dm_ap_mld_t& get_ap_mld_by_ref(unsigned int index) { return m_ap_mld[index]; }
+    //dm_ap_mld_t *find_ap_mld_by_mac(mac_address_t  mac_addr);
 
     dm_dpp_t *get_dpp() { return &m_dpp; }
 

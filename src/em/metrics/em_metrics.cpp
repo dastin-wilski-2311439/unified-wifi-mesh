@@ -45,6 +45,145 @@
 #include "em.h"
 #include "em_cmd_exec.h"
 
+int em_metrics_t::handle_ap_metrics_tlv(unsigned char *buff)
+{
+    em_ap_metric_t *ap_metrics;
+    dm_bss_t *bss;
+    dm_radio_t *radio;
+    //dm_ap_mld_t *m_ap_mld; TODO wifi 6.0
+    dm_easy_mesh_t *dm;
+
+    dm = get_data_model();
+    
+    ap_metrics = (em_ap_metric_t *)buff;
+
+    bss = dm->find_bss_by_bssid(ap_metrics->ap_mac);
+
+    if (bss != NULL)
+    {
+        radio = dm->get_radio(bss->m_bss_info.ruid.mac);
+        radio->m_radio_info.utilization = ap_metrics->channel_util;
+        bss->m_bss_info.numberofsta = ap_metrics->num_sta;
+        if(ap_metrics->est_service_params_BE_bit)
+        {
+            //strcpy(bss->m_bss_info.est_svc_params_be, ap_metrics->est_service_params_BE);
+        }
+        if(ap_metrics->est_service_params_BK_bit)
+        {
+            //strcpy(bss->m_bss_info.est_svc_params_bk, ap_metrics->est_service_params_BK);
+        }
+        if(ap_metrics->est_service_params_VO_bit)
+        {
+            //strcpy(bss->m_bss_info.est_svc_params_vo, ap_metrics->est_service_params_VO);
+        }
+        if(ap_metrics->est_service_params_VI_bit)
+        {
+            //strcpy(bss->m_bss_info.est_svc_params_vi, ap_metrics->est_service_params_VI);
+        }
+        //QUESTION: there is type difference between metrics struct and info class, unsigned char vs em_string_t (table of chars [16])?
+    }
+
+    return 0;
+}
+
+int em_metrics_t::handle_ap_ext_metrics_tlv(unsigned char *buff)
+{
+    em_ap_ext_metric_t *ap_ext_metrics;
+    dm_bss_t *bss;
+    dm_easy_mesh_t *dm;
+
+    dm = get_data_model();
+
+    ap_ext_metrics = (em_ap_ext_metric_t *)buff;
+
+    bss = dm->find_bss_by_bssid(ap_ext_metrics->bssid);
+
+    if(bss !=NULL)
+    {
+        bss->m_bss_info.unicast_bytes_sent = ap_ext_metrics->uni_bytes_sent;
+        bss->m_bss_info.unicast_bytes_rcvd = ap_ext_metrics->uni_bytes_recv;
+        /*bss->m_bss_info.multicast_bytes_sent = ap_ext_metrics->multi_bytes_sent;
+        bss->m_bss_info.multicast_bytes_rcvd = ap_ext_metrics->multi_bytes_recv;
+        bss->m_bss_info.broadcast_bytes_sent = ap_ext_metrics->bcast_bytes_sent;
+        bss->m_bss_info.broadcast_bytes_rcvd = ap_ext_metrics->bcast_bytes_recv;*/
+        //QUESTION: Should these be added to bss_info?
+    }
+
+    return 0;
+}
+
+int em_metrics_t::handle_radio_metrics_tlv(unsigned char *buff)
+{
+    em_radio_metric_t *radio_metrics;
+    dm_radio_t *radio;
+    dm_easy_mesh_t *dm;
+
+    dm = get_data_model();
+
+    radio_metrics = (em_radio_metric_t *)buff;
+
+    radio = dm->get_radio(radio_metrics->ruid);
+    if(radio != NULL)
+    {
+        radio->m_radio_info.noise = radio_metrics->noise;
+        /*radio->m_radio_info.transmit = radio_metrics->transmit;
+        radio->m_radio_info.recv_self = radio_metrics->recv_self;
+        radio->m_radio_info.recv_other = radio_metrics->recv_other;*/
+        //QUESTION: should these be added to radio_info?
+    }
+
+    return 0;
+}
+
+int em_metrics_t::handle_assoc_sta_traffic_metrics_tlv(unsigned char *buff)
+{
+    em_assoc_sta_traffic_sts_t *assoc_sta_traffic_sts;
+    dm_sta_t *sta;
+    dm_easy_mesh_t  *dm;
+    
+    dm = get_data_model();
+
+    assoc_sta_traffic_sts = (em_assoc_sta_traffic_sts_t *)buff;
+
+    sta = dm->get_first_sta(assoc_sta_traffic_sts->sta_mac_addr);
+    if(sta !=NULL)
+    {
+        sta->m_sta_info.bytes_tx = assoc_sta_traffic_sts->bytes_sent;
+        sta->m_sta_info.bytes_rx = assoc_sta_traffic_sts->bytes_recv;
+        sta->m_sta_info.pkts_tx = assoc_sta_traffic_sts->packets_sent;
+        sta->m_sta_info.pkts_rx = assoc_sta_traffic_sts->packets_recv;
+        sta->m_sta_info.errors_tx = assoc_sta_traffic_sts->tx_packets_errors;
+        sta->m_sta_info.errors_rx = assoc_sta_traffic_sts->rx_packets_errors;
+        sta->m_sta_info.retrans_count = assoc_sta_traffic_sts->retrans_count;
+    }
+
+    return 0;
+}
+
+int em_metrics_t::handle_assoc_wifi6_sta_sts_rprt_tlv(unsigned char *buff)
+{
+    em_assoc_wifi6_sta_sts_t *assoc_wifi6_sta_sts;
+    em_assoc_wifi6_sta_t *assoc_wifi6_sta;
+    unsigned int i;
+    dm_easy_mesh_t  *dm;
+    dm_sta_t *sta;
+
+    dm = get_data_model();
+
+    assoc_wifi6_sta_sts = (em_assoc_wifi6_sta_sts_t *)buff;
+    sta = dm->get_first_sta(assoc_wifi6_sta_sts->sta_mac_addr);
+    if(sta != NULL)
+    {
+        for(i = 0; i < assoc_wifi6_sta_sts->n; i++)
+        {
+            assoc_wifi6_sta = &assoc_wifi6_sta_sts->assoc_wifi6_sta[i];
+            //QUESTION: where is TID and queue size
+        }
+    }
+
+    return 0;
+}
+
 int em_metrics_t::handle_assoc_sta_link_metrics_tlv(unsigned char *buff)
 {
     em_assoc_sta_link_metrics_t	*sta_metrics;
@@ -363,6 +502,266 @@ int em_metrics_t::send_associated_link_metrics_response(mac_address_t sta)
     }
     return len;
 }
+
+short em_metrics_t::create_ap_metrics_tlv(unsigned char *buff, mac_address_t ap_mac)
+{
+    short len = 0;
+    dm_bss_t *bss = NULL;
+    dm_radio_t *radio = NULL;
+    dm_easy_mesh_t *dm;
+
+    em_ap_metric_t *ap_metric = (em_ap_metric_t *)buff;
+
+    dm = get_data_model();
+    bss = dm->find_bss_by_bssid(ap_mac);
+
+    if(bss != NULL){
+
+        radio = dm->get_radio(bss->get_bss_info()->ruid.mac);
+
+        memcpy(ap_metric->ap_mac, bss->get_bss_info()->bssid.mac, sizeof(ap_metric->ap_mac));
+        len += sizeof(ap_metric->ap_mac);
+
+        ap_metric->channel_util = radio->get_radio_info()->utilization; // QUESTION: Why there is type difference between info struct and metrics struct for utilization?
+        len += sizeof(ap_metric->channel_util);
+
+        ap_metric->num_sta = bss->get_bss_info()->numberofsta; //QUESTION: again type difference, spec for metrics TLV indicate type of two octets, int by default for this project is 4?
+        len += sizeof(ap_metric->num_sta);
+        
+        //ap_metric->est_service_params_BE_bit = ? QUESTION how to establish presence of est_srvc bits? just check if bss_info est_svc has relevant data?
+        //ap_metric->est_service_params_BK_bit = ?
+        //ap_metric->est_service_params_VI_bit = ?
+        //ap_metric->est_service_params_VO_bit = ?
+        len += sizeof(char);
+
+        //strcpy(ap_metric->est_service_params_BE, bss->get_bss_info()->est_svc_params_be); 
+        len += sizeof(ap_metric->est_service_params_BE);
+        //strcpy(ap_metric->est_service_params_BK, bss->get_bss_info()->est_svc_params_bk);
+        len += sizeof(ap_metric->est_service_params_BK);
+        //strcpy(ap_metric->est_service_params_VI, bss->get_bss_info()->est_svc_params_vi); 
+        len += sizeof(ap_metric->est_service_params_VI);
+        //strcpy(ap_metric->est_service_params_VO, bss->get_bss_info()->est_svc_params_vo);
+        len += sizeof(ap_metric->est_service_params_VO);
+        //QUESTION: Type difference as in handle function, which type is valid, three octets unsigned char or em_string_t?
+    
+    }else{
+        memcpy(&ap_metric->ap_mac, &ap_mac, sizeof(ap_metric->ap_mac));
+        len += sizeof(ap_metric->ap_mac);
+
+        ap_metric->channel_util = 0;//QUESTION: should I fill fields with 0 in case of NULL bss?
+        len += sizeof(ap_metric->channel_util);
+        len += sizeof(ap_metric->num_sta);
+        len += sizeof(char);
+        len += sizeof(ap_metric->est_service_params_BE);
+        len += sizeof(ap_metric->est_service_params_BK);
+        len += sizeof(ap_metric->est_service_params_VI);
+        len += sizeof(ap_metric->est_service_params_VO);
+    }
+  
+    return len;
+}
+
+short em_metrics_t::create_ap_ext_metrics_tlv(unsigned char *buff, mac_address_t ap_mac)
+{
+    short len = 0;
+    dm_bss_t *bss = NULL;
+    dm_easy_mesh_t *dm;
+
+    em_ap_ext_metric_t *ap_ext_metric = (em_ap_ext_metric_t *)buff;
+
+    dm = get_data_model();
+    bss = dm->find_bss_by_bssid(ap_mac);
+
+    if(bss != NULL){
+
+        memcpy(ap_ext_metric->bssid, bss->get_bss_info()->bssid.mac, sizeof(ap_ext_metric->bssid));
+        len += sizeof(ap_ext_metric->bssid);
+
+        ap_ext_metric->uni_bytes_sent = bss->get_bss_info()->unicast_bytes_sent;
+        len += sizeof(ap_ext_metric->uni_bytes_sent);
+
+        ap_ext_metric->uni_bytes_recv = bss->get_bss_info()->unicast_bytes_rcvd;
+        len += sizeof(ap_ext_metric->uni_bytes_recv);
+
+        //ap_ext_metric->multi_bytes_sent = bss->get_bss_info()->multicast_bytes_sent;
+        len += sizeof(ap_ext_metric->multi_bytes_sent);
+
+        //ap_ext_metric->multi_bytes_recv = bss->get_bss_info()->multicast_bytes_rcvd;
+        len += sizeof(ap_ext_metric->multi_bytes_sent);
+
+        //ap_ext_metric->bcast_bytes_sent = bss->get_bss_info()->broadcast_bytes_sent;
+        len += sizeof(ap_ext_metric->bcast_bytes_sent);
+
+        //ap_ext_metric->bcast_bytes_recv = bss->get_bss_info()->broadcast_bytes_rcvd;
+        len += sizeof(ap_ext_metric->bcast_bytes_recv);
+        
+        //QUESTION: as in structure question, should these fields be added to bss as its presence is indicated in spec?
+
+    }else{
+
+        memcpy(ap_ext_metric->bssid, bss->get_bss_info()->bssid.mac, sizeof(ap_ext_metric->bssid));
+        len += sizeof(ap_ext_metric->bssid);
+
+        ap_ext_metric->uni_bytes_sent = 0;
+        len += sizeof(ap_ext_metric->uni_bytes_sent);
+
+        ap_ext_metric->uni_bytes_recv = 0;
+        len += sizeof(ap_ext_metric->uni_bytes_recv);
+        
+        ap_ext_metric->multi_bytes_sent = 0;
+        len += sizeof(ap_ext_metric->multi_bytes_sent);
+
+        ap_ext_metric->multi_bytes_recv = 0;
+        len += sizeof(ap_ext_metric->multi_bytes_recv);
+
+        ap_ext_metric->bcast_bytes_sent = 0;
+        len += sizeof(ap_ext_metric->bcast_bytes_sent);
+
+        ap_ext_metric->bcast_bytes_recv = 0;
+        len += sizeof(ap_ext_metric->bcast_bytes_recv);
+        
+    }
+
+    return len;
+}
+
+short em_metrics_t::create_radio_metrics_tlv(unsigned char *buff, mac_address_t ruid)
+{
+    short len = 0;
+    dm_radio_t *radio = NULL;
+    dm_easy_mesh_t *dm;
+
+    em_radio_metric_t *radio_metric = (em_radio_metric_t *)buff;
+
+    dm = get_data_model();
+    radio = dm->get_radio(ruid);
+
+    if(radio != NULL){
+
+        memcpy(radio_metric->ruid, radio->get_radio_info()->id.mac, sizeof(radio_metric->ruid));
+        len += sizeof(radio_metric->ruid);
+
+        radio_metric->noise = radio->get_radio_info()->noise; //QUESTION: why char vs int type difference?
+        len += sizeof(radio_metric->noise);
+
+        //radio_metric->transmit = radio->get_radio_info()->transmit;
+        len += sizeof(radio_metric->transmit);
+
+        //radio_metric->recv_self = radio->get_radio_info()->recv_self;
+        len += sizeof(radio_metric->recv_self);
+
+        //radio_metric->recv_other = radio->get_radio_info()->recv_other;
+        len += sizeof(radio_metric->recv_other);
+
+    }else{
+        memcpy(radio_metric->ruid, ruid, sizeof(radio_metric->ruid));
+        len += sizeof(radio_metric->ruid);
+
+        radio_metric->noise = 0; //QUESTION: why char vs int type difference?
+        len += sizeof(radio_metric->noise);
+
+        radio_metric->transmit = 0;
+        len += sizeof(radio_metric->transmit);
+
+        radio_metric->recv_self = 0;
+        len += sizeof(radio_metric->recv_self);
+
+        radio_metric->recv_other = 0;
+        len += sizeof(radio_metric->recv_other);
+    }
+    
+    return len;
+}
+
+short em_metrics_t::create_assoc_sta_traffic_metrics_tlv(unsigned char *buff, mac_address_t sta_mac)
+{
+    short len = 0;
+    dm_sta_t *sta = NULL;
+    dm_easy_mesh_t *dm;
+
+    em_assoc_sta_traffic_sts_t *assoc_sta_traffic_stats = (em_assoc_sta_traffic_sts_t *)buff;
+    dm = get_data_model();
+    sta = dm->get_first_sta(sta_mac);
+
+    if(sta != NULL){
+        memcpy(&assoc_sta_traffic_stats->sta_mac_addr, &sta->get_sta_info()->id, sizeof(assoc_sta_traffic_stats->sta_mac_addr));
+        len += sizeof(assoc_sta_traffic_stats->sta_mac_addr);
+
+        assoc_sta_traffic_stats->bytes_sent = sta->get_sta_info()->bytes_tx;
+        len += sizeof(assoc_sta_traffic_stats->bytes_sent);
+
+        assoc_sta_traffic_stats->bytes_recv = sta->get_sta_info()->bytes_rx;
+        len += sizeof(assoc_sta_traffic_stats->bytes_recv);
+
+        assoc_sta_traffic_stats->packets_sent = sta->get_sta_info()->pkts_tx;
+        len += sizeof(assoc_sta_traffic_stats->packets_sent);
+
+        assoc_sta_traffic_stats->packets_recv = sta->get_sta_info()->pkts_rx;
+        len += sizeof(assoc_sta_traffic_stats->packets_recv); 
+
+        assoc_sta_traffic_stats->tx_packets_errors = sta->get_sta_info()->errors_tx;
+        len += sizeof(assoc_sta_traffic_stats->tx_packets_errors);   
+
+        assoc_sta_traffic_stats->rx_packets_errors = sta->get_sta_info()->errors_rx;
+        len += sizeof(assoc_sta_traffic_stats->rx_packets_errors);  
+
+        assoc_sta_traffic_stats->retrans_count = sta->get_sta_info()->retrans_count;
+        len += sizeof(assoc_sta_traffic_stats->retrans_count);                    
+
+    }else{
+        memcpy(&assoc_sta_traffic_stats->sta_mac_addr, &sta_mac, sizeof(assoc_sta_traffic_stats->sta_mac_addr));
+        len += sizeof(assoc_sta_traffic_stats->sta_mac_addr);
+
+        assoc_sta_traffic_stats->bytes_sent = 0;
+        len += sizeof(assoc_sta_traffic_stats->bytes_sent);
+
+        assoc_sta_traffic_stats->bytes_recv = 0;
+        len += sizeof(assoc_sta_traffic_stats->bytes_recv);
+
+        assoc_sta_traffic_stats->packets_sent = 0;
+        len += sizeof(assoc_sta_traffic_stats->packets_sent);
+
+        assoc_sta_traffic_stats->packets_recv = 0;
+        len += sizeof(assoc_sta_traffic_stats->packets_recv); 
+
+        assoc_sta_traffic_stats->tx_packets_errors = 0;
+        len += sizeof(assoc_sta_traffic_stats->tx_packets_errors);   
+
+        assoc_sta_traffic_stats->rx_packets_errors = 0;
+        len += sizeof(assoc_sta_traffic_stats->rx_packets_errors);  
+
+        assoc_sta_traffic_stats->retrans_count = 0;
+        len += sizeof(assoc_sta_traffic_stats->retrans_count); 
+    }
+
+    return len;
+}
+
+/*short em_metrics_t::create_assoc_wifi6_sta_sts_rprt_tlv(unsigned char *buff, mac_address_t sta_mac)
+{
+    short len = 0;
+    unsigned int i;
+    dm_sta_t *sta = NULL;
+    dm_easy_mesh_t *dm;
+
+    em_assoc_wifi6_sta_sts_t *assoc_wifi6_sta_sts = (em_assoc_wifi6_sta_sts_t *)buff;
+    dm = get_data_model();
+
+    sta = dm->get_first_sta(sta_mac);
+
+    if(sta != NULL){
+
+        for(i = 0; i < )
+        {
+
+        }
+
+    }else{
+
+    }
+
+}*/
+//QUESTION: should the TIDs and number of them be specified in radio_info_t structure?
 
 short em_metrics_t::create_assoc_sta_link_metrics_tlv(unsigned char *buff, mac_address_t sta_mac)
 {

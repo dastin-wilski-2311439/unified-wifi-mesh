@@ -532,6 +532,8 @@ typedef enum {
     em_tlv_type_wifi7_agent_cap = 0xdf,
     em_tlv_type_ap_mld_config = 0xe0,
     em_tlv_type_bsta_mld_config = 0xe1,
+    em_tlv_type_affil_sta_metric = 0xe4,
+    em_tlv_type_affil_ap_metric = 0xe5,
     em_tlv_eht_operations = 0xe7,
 } em_tlv_type_t;
 
@@ -789,7 +791,7 @@ typedef struct {
 
 typedef struct {
     unsigned char num_bssids;
-    unsigned char bssid[6];
+    bssid_t 	bssid;
 }__attribute__((__packed__)) em_ap_metrics_query_t;
 
 typedef struct {
@@ -797,7 +799,7 @@ typedef struct {
 }__attribute__((__packed__)) em_ap_radio_id_t;
 
 typedef struct {
-    unsigned char bssid[6];
+    mac_address_t 	ap_mac;
     unsigned char channel_util;
     unsigned short num_sta;
     unsigned char est_service_params_BE_bit : 1;
@@ -813,21 +815,21 @@ typedef struct {
 
 
 typedef struct {
-    unsigned char bssid[6];
-    unsigned char uni_bytes_sent[4];
-    unsigned char uni_bytes_recv[4];
-    unsigned char multi_bytes_sent[4];
-    unsigned char multi_bytes_recv[4];
-    unsigned char bcast_bytes_sent[4];
-    unsigned char bcast_bytes_recv[4];
+    bssid_t 	bssid;
+    unsigned int uni_bytes_sent;
+    unsigned int uni_bytes_recv;
+    unsigned int multi_bytes_sent;
+    unsigned int multi_bytes_recv;
+    unsigned int bcast_bytes_sent;
+    unsigned int bcast_bytes_recv;
 } __attribute__((__packed__)) em_ap_ext_metric_t;
 
 typedef struct {
     em_radio_id_t ruid;
     unsigned char noise;
     unsigned char transmit;
-    unsigned char rece_self;
-    unsigned char rece_other;
+    unsigned char recv_self;
+    unsigned char recv_other;
 } __attribute__((__packed__)) em_radio_metric_t;
 
 typedef struct {
@@ -842,11 +844,39 @@ typedef struct {
 } __attribute__((__packed__)) em_assoc_sta_traffic_sts_t;
 
 typedef struct {
-    mac_address_t sta_mac_addr;
-    unsigned char n;
     unsigned char tid;
     unsigned char queue_size;
+} __attribute__((__packed__)) em_assoc_wifi6_sta_t;
+
+typedef struct {
+    mac_address_t sta_mac_addr;
+    unsigned char n;
+    em_assoc_wifi6_sta_t assoc_wifi6_sta[0];
 } __attribute__((__packed__)) em_assoc_wifi6_sta_sts_t;
+
+typedef struct {
+    bssid_t 	bssid;
+    unsigned int packets_sent;
+    unsigned int packets_recv;
+    unsigned int packets_sent_err;
+    unsigned char uni_bytes_sent;
+    unsigned int uni_bytes_recv;
+    unsigned int multi_bytes_sent;
+    unsigned int multi_bytes_recv;
+    unsigned int bcast_bytes_sent;
+    unsigned int bcast_bytes_recv;
+    unsigned char reserved[0];          //Reserved for future expansion (length inferred from tlvLength field)
+} __attribute__((__packed__)) em_affil_ap_metrics_t;
+
+typedef struct {
+    mac_address_t sta_mac_addr;
+    unsigned int bytes_sent;
+    unsigned int bytes_recv;
+    unsigned int packets_sent;
+    unsigned int packets_recv;
+    unsigned int packets_sent_err;
+    unsigned char reserved[0];          //Reserved for future expansion (length inferred from tlvLength field)
+} __attribute__((__packed__)) em_affil_sta_metrics_t;
 
 typedef struct {
     mac_address_t client_mac_addr;
@@ -1997,6 +2027,11 @@ typedef struct {
     em_string_t     timestamp;
     unsigned int unicast_bytes_sent;
     unsigned int    unicast_bytes_rcvd;
+    /*unsigned int    multicast_bytes_sent;
+    unsigned int    multicast_bytes_rcvd;
+    unsigned int    broadcast_bytes_sent;
+    unsigned int    broadcast_bytes_rcvd;*/
+    //QUESTION: TLV points to these variables for bss, is there a spec that would indicate where these should be, their types etc.?
     unsigned int    numberofsta;
     em_string_t     est_svc_params_be;
     em_string_t     est_svc_params_bk;
@@ -2066,6 +2101,10 @@ typedef struct {
     unsigned  int   number_of_bss;
     unsigned  int   number_of_unassoc_sta;
     int     noise;
+    /*unsigned char transmit;
+    unsigned char recv_self;
+    unsigned char recv_other;*/
+    //QUESTION: above fileds are indicated by radio metrics tlv, is there a spec that would indicate where these should be?
     unsigned short utilization;
     bool    traffic_sep_combined_fronthaul;
     bool    traffic_sep_combined_backhaul;
