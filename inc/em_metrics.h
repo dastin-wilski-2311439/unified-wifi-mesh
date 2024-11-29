@@ -30,6 +30,27 @@ class em_metrics_t {
     virtual int send_frame(unsigned char *buff, unsigned int len, bool multicast = false) = 0;
     virtual em_profile_type_t get_profile_type() = 0;
 
+    int send_ap_metrics_msg(mac_address_t ap_mac);
+    int send_ap_metrics_response(mac_address_t ap_mac);
+
+    int handle_ap_metrics_query(unsigned char *buff, unsigned int len);
+    int handle_ap_metrics_resp(unsigned char *buff, unsigned int len);
+    int handle_ap_metrics_tlv(unsigned char *buff);
+    int handle_ap_ext_metrics_tlv(unsigned char *buff);
+    int handle_radio_metrics_tlv(unsigned char *buff);
+    int handle_assoc_sta_traffic_metrics_tlv(unsigned char *buff);
+    int handle_assoc_wifi6_sta_sts_rprt_tlv(unsigned char *buff);
+    //int handle_affil_ap_metrics_tlv(unsigned char *buff); TODO wifi 6.0
+    //int handle_affil_sta_metrics_tlv(unsigned char *buff); TODO wifi 6.0
+
+    short create_ap_metrics_tlv(unsigned char *buff, mac_address_t ap_mac);
+    short create_ap_ext_metrics_tlv(unsigned char *buff, mac_address_t ap_mac);
+    short create_radio_metrics_tlv(unsigned char *buff, mac_address_t ruid);
+    short create_assoc_sta_traffic_metrics_tlv(unsigned char *buff, mac_address_t sta_mac);
+    short create_assoc_wifi6_sta_sts_rprt_tlv(unsigned char *buff, mac_address_t sta_mac);
+    //short create_affil_ap_metrics_tlv(unsigned char *buff, mac_address_t ap_mac); TODO wifi 6.0
+    //short create_affil_sta_metrics_tlv(unsigned char *buff, mac_address_t ap_mac); TODO wifi 6.0
+
     int send_all_associated_sta_link_mterics_msg();
     int send_associated_sta_link_metrics_msg(mac_address_t sta_mac);
     int send_associated_link_metrics_response(mac_address_t sta_mac);
