@@ -265,8 +265,6 @@ int em_metrics_t::handle_ap_metrics_query_msg(unsigned char *buff, unsigned int 
 
     dm_easy_mesh_t::macbytes_to_string(bssid_to_report[0], bss_str);
     dm_easy_mesh_t::macbytes_to_string(radios_to_report[0], radio_str);
-    printf("num_bssid: %d, num_radio: %d\n",num_bssid, num_radio);
-    printf("%s  %s\n",bss_str, radio_str);
 
     send_ap_metrics_response_msg(bssid_to_report, num_bssid, radios_to_report, num_radio);
     set_state(em_state_agent_configured);

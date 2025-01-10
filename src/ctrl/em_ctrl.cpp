@@ -366,9 +366,10 @@ void em_ctrl_t::handle_5s_timeout()
     struct timeval tv;
     time_t curtime;
 
-    if ((m_tick_demultiplex % EM_5_TOUT_MULT) != 0) {
+    if ((m_tick_demultiplex % 100000) != 0) {
         return;
     }
+    m_tick_demultiplex = 0;
     gettimeofday(&tv, NULL);
     curtime = tv.tv_sec;
 

@@ -457,6 +457,11 @@ void em_agent_t::input_listener()
         return;
     }
 
+    if (desc->bus_event_subs_fn(&m_bus_hdl, "Device.WiFi.CollectStats.AccessPoint.1", (void *)&em_agent_t::ap_stats_cb, NULL, 0) != 0) {
+        printf("%s:%d bus get failed\n", __func__, __LINE__);
+        return;
+    }
+
     if (desc->bus_event_subs_fn(&m_bus_hdl, "Device.WiFi.AccessPoint.1.RawFrame.Mgmt.Action.Rx", (void *)&em_agent_t::mgmt_action_frame_cb, NULL, 0) != 0) {
         printf("%s:%d bus get failed\n", __func__, __LINE__);
         return;
@@ -497,6 +502,28 @@ int em_agent_t::assoc_stats_cb(char *event_name, raw_data_t *data)
     }
 
     g_agent.io_process(em_bus_event_type_sta_link_metrics, (unsigned char *)data->raw_data.bytes, data->raw_data_len);
+
+    return 1;
+}
+
+int em_agent_t::ap_stats_cb(char *event_name, raw_data_t *data)
+{
+    printf("%s:%d recv data:\r\n%s\r\n", __func__, __LINE__, (char *)data->raw_data.bytes);
+    cJSON *json, *assoc_stats_arr;
+
+    json = cJSON_Parse((const char *)data->raw_data.bytes);
+    if (json != NULL) {
+        assoc_stats_arr = cJSON_GetObjectItem(json, "AccessPoint.1");
+        if ((assoc_stats_arr == NULL) && (cJSON_IsObject(assoc_stats_arr) == false)) {
+            return -1;
+        }
+        if (cJSON_IsArray(assoc_stats_arr) && cJSON_GetArraySize(assoc_stats_arr) == 0) {
+            printf("%s:%d AssociatedDeviceStats is NULL\n", __func__, __LINE__);
+            return -1;
+        }
+    }
+
+    g_agent.io_process(em_bus_event_type_ap_metrics, (unsigned char *)data->raw_data.bytes, data->raw_data_len);
 
     return 1;
 }

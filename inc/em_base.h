@@ -2463,7 +2463,7 @@ typedef enum {
     em_bus_event_type_sta_link_metrics,
     em_bus_event_type_set_radio,
     em_bus_event_type_bss_tm_req,
-    em_bus_event_type_btm_response
+    em_bus_event_type_btm_response,
     em_bus_event_type_ap_metrics,
 } em_bus_event_type_t;
 
