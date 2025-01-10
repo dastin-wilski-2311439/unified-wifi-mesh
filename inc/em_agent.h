@@ -93,6 +93,7 @@ public:
     static int sta_cb(char *event_name, raw_data_t *data);
     static int onewifi_cb(char *event_name, raw_data_t *data);
     static int assoc_stats_cb(char *event_name, raw_data_t *data);
+    static int ap_stats_cb(char *event_name, raw_data_t *data);
     static int mgmt_action_frame_cb(char *event_name, raw_data_t *data);
     void *get_assoc(void*);
     void io(void *data, bool input = true);
